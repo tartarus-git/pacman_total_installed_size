@@ -1,0 +1,25 @@
+#!/bin/bash
+
+dirty_sizes=($(pacman -Qi | grep "Installed Size" | sed "s/.*: //"))
+dirty_sizes_length=${#dirty_sizes[@]}
+
+kib_sum=0
+for (( i=0; i<$dirty_sizes_length; i+=2 ))
+do
+	if [ ${dirty_sizes[$((i + 1))]} == "KiB" ]
+	then
+		kib_sum=$(awk "BEGIN {OFMT=\"%f\"; print $kib_sum + ${dirty_sizes[i]}; exit}")
+	fi
+
+	if [ ${dirty_sizes[$((i + 1))]} == "MiB" ]
+	then
+		kib_sum=$(awk "BEGIN {OFMT=\"%f\"; print $kib_sum + 1024 * ${dirty_sizes[i]}; exit}")
+	fi
+
+	if [ ${dirty_sizes[$((i + 1))]} == "GiB" ]
+	then
+		kib_sum=$(awk "BEGIN {OFMT=\"%f\"; print $kib_sum + 1024 * 1024 * ${dirty_sizes[i]}; exit}")
+	fi
+done
+
+echo "$kib_sum KiB"
